@@ -1,0 +1,1396 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+// generate QR Code Module
+model qr_template {
+  id              Int      @id @default(autoincrement())
+  date_created    DateTime  @default(now())
+  created_by_id   Int?
+  created_by_name String?   @db.VarChar(50)
+  size            String?   @db.VarChar(50)
+  temp_image      String?   @db.VarChar(200)
+  del             Boolean?  @default(false)
+
+  @@index([size], name: "size_idx")
+  @@index([date_created], name: "date_created_idx")
+}
+model offer_coupon_history {
+  id                    Int      @id @default(autoincrement())
+  date_created          DateTime @default(now())
+  created_by_id         Int?
+  created_by_name       String?   @db.VarChar(50)
+  point_category_id     Int?
+  point_category_name   String?   @db.VarChar(100)
+  product_id            Int?
+  product_detail        String? 
+  product_code          String?
+  coupon_qty            Int?
+  remark                String?    
+  paper_size            String?   @db.VarChar(100)
+  batch_name      String?   @db.VarChar(100)
+  template_id           Int?
+  print_status          Boolean?  @default(false)
+  del                   Boolean?  @default(false)
+  coupons               offer_coupon[]   @relation("CouponHistoryRelation")
+ 
+  @@index([date_created], name: "date_created_idx")
+  @@index([point_category_name], name: "point_category_name_idx")
+  @@index([product_code], name: "product_code_idx")
+  @@index([product_detail], name: "product_detail_idx")
+  @@index([coupon_qty], name: "coupon_qty_idx")
+  @@index([remark], name: "remark_idx")
+ @@index([del], name: "del_idx")
+}
+model offer_coupon {
+  id                       Int      @id @default(autoincrement())
+  offer_coupon_history_id  Int?
+  date_created             DateTime @default(now())
+  created_by_id               Int?
+  created_by_name          String?   @db.VarChar(50)
+  is_Scanned               Boolean? @default(false) 
+  coupon_code              String?  @unique @db.VarChar(100)
+  batch_name      String?   @db.VarChar(100)
+
+
+  point_category_name      String?   @db.VarChar(100)
+  point_category_id        Int?
+
+  product_id               Int?
+  product_detail           String?  
+  product_qty              Int?
+  product_mrp              Float?
+
+  
+  remark                   String?   
+
+  
+  reopned_by               Int?
+  reopned_date             DateTime?
+  
+  del                      Boolean  @default(false)
+
+ history                  offer_coupon_history? @relation("CouponHistoryRelation", fields: [offer_coupon_history_id], references: [id])
+ offer_coupon_scan        offer_coupon_scan[]
+  @@index([date_created], name: "date_created_idx")
+@@index([coupon_code], name: "coupon_code_idx")
+@@index([point_category_name], name: "point_category_name_idx")
+@@index([product_detail], name: "product_detail_idx")
+@@index([remark], name: "remark_idx")
+@@index([del], name: "del_idx")
+@@index([is_Scanned], name: "is_Scanned_idx")
+}
+
+model offer_coupon_scan {
+  id                     Int      @id @default(autoincrement())
+  date_created           DateTime  @default(now())
+  scanned_date           DateTime @default(now())
+  transaction_id         String?   @db.VarChar(150)
+  scanned_by_id             Int?
+  scanned_by_name        String?   @db.VarChar(50)
+  scanned_by_mobile      String?   @db.VarChar(14)
+  scanned_by_type        String?   @db.VarChar(100)
+  influencer_type        String?   @db.VarChar(30)
+  batch_name      String?   @db.VarChar(100)
+  coupon_code            String?   @db.VarChar(100)
+  point_category_name    String?   @db.VarChar(100)
+  point_category_id      Int?
+  product_detail         String?   @db.VarChar(400)
+  coupon_value           Float?
+  coupon_id              Int?
+  state                  String?   @db.VarChar(100)
+    district               String?   @db.VarChar(100)
+  region                 String?   @db.VarChar(100)
+  category               String?   @db.VarChar(100)
+  sub_category           String?   @db.VarChar(100)
+  total_point            Float?   @default(0)
+  lat                    String?    @db.VarChar(60)
+  lng                    String?   @db.VarChar(60)
+  gps_address            String?   @db.Text
+  is_mobile_manual_scan  Boolean?   @default(false)
+  bonus_scheme_name      String?   @db.VarChar(150)
+  bonus_scheme_id        Int?
+
+  badge_point            Int?
+  badge_scheme_name      String?   @db.VarChar(100)
+  badge_scheme_id        Int?
+  del                    Boolean  @default(false)
+
+  offer_coupon           offer_coupon? @relation(fields: [coupon_id], references: [id])
+    @@index([date_created], name: "date_created_idx")
+  @@index([coupon_code], name: "coupon_code_idx")
+  @@index([point_category_name], name: "point_category_name_idx")
+  @@index([product_detail], name: "product_detail_idx")
+  @@index([scanned_date], name: "scanned_date_idx")
+  @@index([del], name: "del_idx")
+  @@index([is_mobile_manual_scan], name: "is_mobile_manual_scan_idx")
+  @@index([bonus_scheme_name], name: "bonus_scheme_name_idx")
+@@index([scanned_by_name], name: "scanned_by_name_idx")
+@@index([scanned_by_mobile], name: "scanned_by_mobile_idx")
+@@index([scanned_by_type], name: "scanned_by_type_idx")
+@@index([influencer_type], name: "influencer_type_idx")
+@@index([state], name: "state_idx")
+@@index([region], name: "region_idx")
+@@index([category], name: "category_idx")
+@@index([sub_category], name: "sub_category_idx")
+}
+
+// bonus Module
+model abq_postal_master {
+  id                   Int     @id @default(autoincrement())
+  state_name           String?  @db.VarChar(150)
+  district_name        String?  @db.VarChar(150)
+  city                 String? @db.VarChar(100)
+  area                 String? @db.VarChar(100)
+  pincode              Int?  
+  bonus_flag           Int?     @default(0)
+  del                  Boolean @default(false)
+  download             Int?
+  report_district_flag Int?     @default(0)
+  zones                String?  @db.VarChar(300)
+  country              String?  @db.VarChar(100) 
+
+}
+
+model bonus_master {
+  id               Int      @id @default(autoincrement())
+  date_created     DateTime  @default(now())
+  created_by_id       Int? 
+  created_by_name  String?  @db.VarChar(150)
+  
+  influencer_type  String?   @db.VarChar(50)
+  state            String?   
+  district         String?   
+
+  title           String?   @db.VarChar(300)
+  start_date       DateTime?  @default(now())
+  end_date         DateTime? @db.Date
+
+  // admin can active/deactive the bonus scheme
+  status           Boolean @default(true)
+  updated_by       Int?
+  updated_at       DateTime? @db.Date
+
+  del              Boolean  @default(false)
+
+  bonus_product_point  bonus_product_point[]
+  @@index([date_created], name: "date_created_idx")
+  @@index([state], name: "state_idx")
+  @@index([district], name: "district_idx")
+  @@index([title], name: "title_idx")
+  @@index([influencer_type], name: "influencer_type_idx")
+  @@index([del], name: "del_idx")
+  @@index([status], name: "status_idx")
+  @@index([start_date], name: "start_date_idx")
+  @@index([end_date], name: "end_date_idx")
+}
+model bonus_product_point {
+  id              Int      @id @default(autoincrement())
+  date_created    DateTime @default(now())
+  created_by_id      Int?
+  created_by_name String?
+  bonus_id        Int
+  point_category_id Int?
+  point_category_name String?
+  point           Int?
+  updated_by      Int?
+  updated_at      DateTime?
+  del             Boolean  @default(false)
+
+  bonus_master    bonus_master @relation(fields: [bonus_id], references: [id], onDelete: Cascade)
+  @@index([point_category_name], name: "point_category_name_idx")
+  @@index([del], name: "del_idx")
+    @@index([date_created], name: "date_created_idx")
+
+}
+enum badgetype{
+ TRANSACTION
+ DAY
+}
+enum PointIncentiveType{
+  FIXED
+  PERCENT
+}
+model influencer_badge {
+  id                  Int      @id @default(autoincrement())
+  date_created        DateTime @default(now()) 
+  created_by_id       Int?
+  created_by_name     String?  @db.VarChar(50)
+  slab_type           String?   @db.VarChar(50)  //for customwise or daywise
+  title               String?   @db.VarChar(50)
+  eligible_days       String?   @db.VarChar(50) //selct slab 7 days 15 days 30 days
+  eligible_value      Float?                       //scanning point
+  badge_type          badgetype
+  point_incentive_type PointIncentiveType       //fixed or percent
+  point_value         Float?                      //point(percentwise/fixedpoint)                
+  image               String?   @db.VarChar(200)
+  // admin can active/deactive the badge 
+  status              Boolean  @default(true)
+  last_updated_by     DateTime? 
+  last_updated_by_id  Int?
+  last_updated_by_name String?  @db.VarChar(50)
+
+  start_date          DateTime  @default(now())
+  end_date            DateTime?
+  
+  // enroll influencer badge
+  influencer_type     String?   @db.VarChar(50)
+  last_changed_On    DateTime?
+  last_changed_by_id Int?
+  last_changed_by_name String?
+  del                 Boolean  @default(false)
+  @@index([date_created], name: "date_created_idx")
+@@index([slab_type], name: "slab_type_idx")
+@@index([title], name: "title_idx")
+@@index([eligible_days], name: "eligible_days_idx")
+@@index([badge_type], name: "badge_type_idx")
+@@index([point_incentive_type], name: "point_incentive_type_idx")
+@@index([point_value], name: "point_value_idx")
+@@index([status], name: "status_idx")
+@@index([influencer_type], name: "influencer_type_idx")
+@@index([del], name: "del_idx")
+@@index([start_date], name: "start_date_idx")
+@@index([end_date], name: "end_date_idx")
+}
+
+model spin_win_user_record {
+  id               Int              @id @default(autoincrement())
+  date_created     DateTime         @default(now())
+  created_by_id    Int?
+  created_by_name  String?          @db.VarChar(50)
+  eligible_days    Int?
+  point_section    Int?
+  
+// enroll influencer for spin & win
+  influencer_type  String?          @db.VarChar(50)
+  last_changed_on  DateTime?
+  last_changed_by_id Int?
+  last_changed_by_name String?  @db.VarChar(50)
+
+  // admin can active/deactive the spin & win
+  status           Boolean          @default(true)
+  last_updated_by  DateTime?
+  last_updated_by_id Int?
+  last_updated_by_name String?  @db.VarChar(50)
+
+
+  del              Boolean          @default(false)
+  assigned_spin   assigned_spin[]
+  @@index([date_created], name: "date_created_idx")
+  @@index([point_section], name: "point_section_idx")
+  @@index([influencer_type], name: "influencer_type_idx")
+  @@index([status], name: "status_idx")
+  @@index([del], name: "del_idx")
+  @@index([eligible_days], name: "eligible_days_idx")
+  @@index([last_changed_on], name: "last_changed_on_idx")
+}
+
+model assigned_spin {
+  id                Int                 @id @default(autoincrement())
+  date_created      DateTime            @default(now())
+  spin_id           Int                 
+  slab_title        String?             @db.VarChar(100)
+  slab_point        Int?
+  del               Boolean             @default(false)
+  spin_win_user_record spin_win_user_record @relation(fields: [spin_id], references: [id])
+  @@index([slab_title], name: "slab_title_idx")
+  @@index([slab_point], name: "slab_point_idx")
+  @@index([del], name: "del_idx")
+    @@index([date_created], name: "date_created_idx")
+}
+
+
+// redeem request MOdule
+model gift_redeem_request {
+  id                                 Int       @id  @default(autoincrement())
+  user_type                          String?    @db.VarChar(100)
+  date_created                       DateTime  @default(now())
+  req_id                             String?    @db.VarChar(30)
+  user_id                            Int?
+  user_name                          String?    @db.VarChar(150)
+  user_mobile                        String?    @db.VarChar(20)
+  influencer_type                    String?   @db.VarChar(30)
+  payment_mode                       String?    @db.VarChar(50)
+  upi_id                             String?    @db.VarChar(50)
+  account_no                         String?    @db.VarChar(20)
+  ifsc_code                          String?    @db.VarChar(20)
+  bank_name                          String?    @db.VarChar(20)
+  account_holder_name                String?    @db.VarChar(150)
+  state                              String?    @db.VarChar(100)
+  district                           String?    @db.VarChar(100)
+  redeem_type                        String?    @db.VarChar(50)
+  redeem_point                       Float?
+  point_range_value                  Float?
+
+  action_status                       Status?  @default(PENDING) //pending,approved,reject
+
+  gift_id                            Int?
+  gift_name                          String?    @db.VarChar(200)
+  gift_type                          GiftType?
+  transfer_date                      DateTime?  @db.Date
+  transaction_no                     String?    @db.VarChar(100)
+  remark                             String?
+
+  
+
+  // shipping details
+  gift_status                        String?    @db.VarChar(20) //processing,shipped,delivered,returned,refunded,cancelled
+  shipping_address                   String?
+  shipping_type                      String?    @db.VarChar(50)
+  shipping_remark                    String?
+  shipping_date                       DateTime? 
+
+  range_start                        Float?
+  range_end                          Float?
+  cash_point                         Float?
+  return_point_flag                  Int?
+  transfer_remark                    String?
+  reject_reason                      String?
+  recieved_date                      DateTime?
+
+  redeem_status_date                 DateTime?
+  estimate_date                      DateTime?  @db.Date
+  transaction_id                     String?    @db.VarChar(50)
+  transfer_type                      String?    @db.VarChar(50)
+  razorpay_fund_id                   String?    @db.VarChar(100)
+  razorpay_payout_id                 String?    @db.VarChar(100)
+  transfer_status                    String?    @db.VarChar(200)
+  razorpay_flag                      Int?
+  wallet_number                      String?    @db.VarChar(20)
+  khalti_order_id                    String?    @db.VarChar(50)
+  paytmFlag                          Int?
+  del                                Boolean?   @default(false)
+
+  last_status_updated_by             Int?
+  last_status_updated_on             DateTime?
+  last_status_updated_by_name        String?    @db.VarChar(100)
+  last_number_updated_by             Int?
+  last_number_updated_by_name        String?    @db.VarChar(100)
+  last_number_updated_on             DateTime?
+  update                             Int?
+
+
+  payout_processed_id                String?    @db.VarChar(255)
+  payout_transaction_status_code     String?    @db.VarChar(100)
+  payout_transaction_status_msg      String?    @db.VarChar(100)
+  payout_transaction_status_remark   String?
+  payout_transaction_status_date     DateTime?
+  payment_processed_status           Int?
+  payment_refunded                   Int?
+  payout_transaction_refund          Int?
+  payout_transaction_refund_date     DateTime?
+  payout_transaction_date            DateTime?
+  download                           Int?
+  
+  transaction_update_on              DateTime?
+  transaction_updated_by             Int?
+  redeem_from                        String?    @db.VarChar(100)
+
+  influencer_customer                influencer_customer? @relation(fields: [user_id], references: [id])
+  gift_gallery_master                gift_gallery_master? @relation(fields: [gift_id], references: [id])
+
+  @@index([date_created], name: "date_created_idx")
+  @@index([req_id], name: "req_id_idx")
+  @@index([user_id], name: "user_id_idx")
+  @@index([user_mobile], name: "user_mobile_idx")
+  @@index([gift_id], name: "gift_id_idx")
+  @@index([influencer_type], name: "influencer_type_idx")
+  @@index([action_status], name: "action_status_idx")
+  @@index([gift_status], name: "gift_status_idx")
+  @@index([shipping_type], name: "shipping_type_idx")
+  @@index([redeem_type], name: "redeem_type_idx")
+  @@index([redeem_status_date], name: "redeem_status_date_idx")
+  @@index([del], name: "del_idx")
+  @@index([redeem_point], name: "redeem_point_idx")
+  @@index([payment_mode], name: "payment_mode_idx")
+  @@index([account_no], name: "account_no_idx")
+  @@index([ifsc_code], name: "ifsc_code_idx")
+  @@index([bank_name], name: "bank_name_idx")
+  @@index([account_holder_name], name: "account_holder_name_idx")
+  @@index([state], name: "state_idx")
+  @@index([district], name: "district_idx")
+  @@index([range_start], name: "range_start_idx")
+  @@index([range_end], name: "range_end_idx")
+  @@index([cash_point], name: "cash_point_idx")
+  @@index([return_point_flag], name: "return_point_flag_idx")
+  @@index([transaction_id], name: "transaction_id_idx")
+  @@index([wallet_number], name: "wallet_number_idx")
+
+}
+
+// gift Gallery  Module
+enum GiftType{
+  GIFT
+  CASH
+}
+
+model gift_gallery_master {
+  id                       Int                       @id @default(autoincrement())
+  date_created             DateTime                  @default(now())
+  created_by_id            Int?
+  created_by_name          String?                    @db.VarChar(30)
+
+  gift_type                GiftType
+  influencer_type          String?
+  title                    String?                    @db.VarChar(200)
+  gift_point               Float?
+  gift_img                 String?                    @db.VarChar(200)
+  termsNcondition          String?                    @db.Text
+
+
+                   
+  point_range_value        Float?    
+                   
+  start_date         DateTime                   @default(now())
+  end_date           DateTime?                  @default(now())
+// admin can active/deactive the gift item
+  status                   Boolean                    @default(true)
+  last_status_changed_on   DateTime?
+  status_changed_by        Int?
+  status_changed_by_name   String?                    @db.VarChar(30)
+
+  del                      Boolean                    @default(false)
+
+  gift_redeem_request      gift_redeem_request[]
+  @@index([date_created], name: "date_created_idx")
+  @@index([gift_type], name: "gift_type_idx")
+  @@index([influencer_type], name: "influencer_type_idx")
+  @@index([title], name: "title_idx")
+  @@index([gift_point], name: "gift_point_idx")
+  @@index([start_date], name: "start_date_idx")
+  @@index([end_date], name: "end_date_idx")
+  @@index([status], name: "status_idx")
+  @@index([del], name: "del_idx")
+  @@index([point_range_value], name: "point_range_value_idx")
+}
+
+
+// Network Influencer Modules 
+enum CreatedByType {
+  SELF
+  SYSTEM
+}
+
+enum KycDocumentType {
+  AADHAAR
+  VOTERID
+  DRIVINGLICENCE
+}
+
+enum UpiOrBank {
+  UPI
+  BANK
+}
+
+enum Status {
+  PENDING
+  APPROVED
+  REJECT
+}
+enum InfluencerType{
+  PAINTER
+  CONTRACTOR
+}
+model influencer_customer {
+  id                       Int      @id  @default(autoincrement())
+  date_created             DateTime  @default(now())
+  created_by_id            Int?
+  created_by_name          String?    @db.VarChar(50)
+  created_by_type          CreatedByType?
+  influencer_type_name     InfluencerType?
+  login_type               String?    @db.VarChar(50)
+
+  profile_img              String?
+  name                     String?    @db.VarChar(250)
+  email                    String?    
+  mobile                   String?    @unique 
+  country                  String?    @db.VarChar(100)
+  state                    String?    @db.VarChar(150)
+  district                 String?    @db.VarChar(150)
+  city                     String?    @db.VarChar(150)
+  area                     String?    @db.VarChar(400)
+  pincode                  String?    @db.VarChar(10)
+  address                  String?
+  shipping_address           String?
+  lat                      String?    @db.VarChar(50)
+  lng                      String?    @db.VarChar(50)
+
+
+  kyc_document_type        KycDocumentType?
+  document_no              String?    @db.VarChar(20)
+  document_img_front       String?
+  document_img_back        String?
+
+
+  pan_no                   String?    @db.VarChar(14)
+  document_pan_img         String?
+
+
+  user_redeemption_prefrence UpiOrBank? 
+  upi_id                   String?
+  account_holder_name      String?    @db.VarChar(150)
+  bank_name                String?    @db.VarChar(150)
+  ifsc_code                String?    @db.VarChar(30)
+  account_no               String?    @db.VarChar(30)
+  document_bank_img        String?
+
+// admin can approve/reject the kyc
+  kyc_status               Status?   @default(PENDING)
+  kyc_remark               String?
+  kyc_verified_date        DateTime?  @default(now())
+  kyc_verified_by_id       Int?
+  kyc_verified_by_name     String?    @db.VarChar(100)
+
+// admin can approve/reject the influencer
+  status_of_profile        Status?  @default(PENDING)
+  status_change_date       DateTime? @default(now()) 
+  status_change_by         Int?
+  status_change_by_name    String?    @db.VarChar(100)
+
+// admin can active/deactive the influencer
+  force_logout                          Boolean   @default(false)
+  active_status                        Boolean @default(true)                     
+  active_status_change_by_id          Int?
+  active_status_change_by_name        String?    @db.VarChar(100)
+  active_status_changed_date        DateTime? @default(now())
+
+// DATES
+  work_anniversary_date    DateTime?  @default(now())
+  birth_date               DateTime?   @default(now())
+  wedding_date             DateTime?   @default(now())
+  welcome_bonus_flag       Boolean?    @default(false)
+
+// scan details
+  current_wallet_balnc     Int?       @default(0)
+  last_wallet_update       DateTime?  @default(now()) 
+  last_scan_date           DateTime?
+  last_redeem_date         DateTime?
+  last_spin_date           DateTime? 
+
+// spin details 
+  last_spin_id                Int?      
+  last_spin_point             String?   @db.VarChar(100)
+
+
+// referral_code Info 
+  referral_code            String?    @db.VarChar(50)     //jiska data h
+  referred_by_id           Int?
+  referred_by_code         String?    @db.VarChar(50)    //jiska data h uske top m kon refeerrer h
+
+
+// dealer/distributor details
+  dealer_code              String?    @db.VarChar(100)
+  dealer_id                Int?
+  dealer_name              String?    @db.VarChar(100)
+  dealer_mobile            String?    @db.VarChar(12)
+  distributor_name         String?    @db.VarChar(50)
+
+  first_login_timestamp    DateTime? @default(now())
+  last_login_timestamp     DateTime?  @default(now())
+
+// app details
+  app_version              String?    @db.VarChar(30)
+  device_unique_id         String?    @db.VarChar(150)
+  device_info              String?    @db.VarChar(150)
+  fcm_token          String?    
+  app_language             String?    @db.VarChar(200)
+
+  registration_source      String?    @db.VarChar(100)
+  last_updated_by          String?    @db.VarChar(300)
+  last_updated_on          DateTime?  @default(now())
+
+  reopned_date             DateTime?  @default(now())
+  reopned_by_id            Int?
+
+// social media id
+  facebook_id              String?    @db.VarChar(200)
+  instagram_id             String?    @db.VarChar(200)
+  del                      Boolean   @default(false)
+
+
+
+  influencerLedgers          influencer_ledger[]
+  gift_redeem_request        gift_redeem_request[]
+  user_streaks               user_streaks[]
+
+  @@index([date_created], name: "date_created_idx")
+  @@index([mobile], name: "mobile_idx")
+  @@index([kyc_status], name: "kyc_status_idx")
+  @@index([status_of_profile], name: "status_of_profile_idx")
+  @@index([influencer_type_name], name: "influencer_type_name_idx")
+  @@index([state], name: "state_idx")
+  @@index([district], name: "district_idx")
+  @@index([city], name: "city_idx")
+  @@index([referral_code], name: "referral_code_idx")
+  @@index([referred_by_code], name: "referred_by_code_idx")
+  @@index([dealer_code], name: "dealer_code_idx")
+  @@index([dealer_id], name: "dealer_id_idx")
+  @@index([del], name: "del_idx")
+  @@index([email], name: "email_idx")
+  @@index([document_no], name: "document_no_idx")
+  @@index([pan_no], name: "pan_no_idx")
+  @@index([account_no], name: "account_no_idx")
+  @@index([ifsc_code], name: "ifsc_code_idx")
+  @@index([bank_name], name: "bank_name_idx")
+  @@index([account_holder_name], name: "account_holder_name_idx")
+  @@index([current_wallet_balnc], name: "current_wallet_balnc_idx")
+  @@index([last_scan_date], name: "last_scan_date_idx")
+  @@index([last_redeem_date], name: "last_redeem_date_idx")
+  @@index([last_spin_date], name: "last_spin_date_idx")
+  @@index([last_spin_id], name: "last_spin_id_idx")
+  @@index([last_spin_point], name: "last_spin_point_idx")
+  @@index([first_login_timestamp], name: "first_login_timestamp_idx")
+  @@index([last_login_timestamp], name: "last_login_timestamp_idx")
+
+}
+
+// Master MOdules 
+// user
+enum sfa_user_type {
+  Sales
+  System
+}
+
+model sfa_user {
+  id                        Int       @id @default(autoincrement())
+  user_type                 sfa_user_type
+  date_created              DateTime  @default(now())
+  login_type               String?    @db.VarChar(50)
+  name                      String?    @db.VarChar(50)
+  email                     String?    @db.VarChar(50)
+  access_level              Int?
+  designation_id            Int?
+  designation_name          String?    @db.VarChar(50)
+  branch_code               String?   @db.VarChar(50)
+  username                  String?   @db.VarChar(50)
+  password                  String?   @db.VarChar(100)
+  contact_01                String?    @unique @db.VarChar(20)
+  contact_02                String?   @db.VarChar(20)
+  paytm_mobileno            String?   @db.VarChar(20)
+  employee_id               String?    @db.VarChar(20)
+  date_of_joining           DateTime?  @db.Date
+  address                   String?    @db.VarChar(150)
+  state_name                String?    @db.VarChar(100)
+  working_state_name        String?
+  working_district_name     String?
+  district_name             String?    @db.VarChar(100)
+  pincode                   String?    @db.VarChar(20)
+  city                      String?    @db.VarChar(20)
+  area                      String?   @db.VarChar(20)
+  weekly_off                String?    @db.VarChar(20)
+  image                     String?   @db.VarChar(224)
+  status                    Boolean?   @default(true)
+  user_token                String?
+  unique_token              String?   @db.VarChar(215)
+  fcm_token                 String?   @db.VarChar(255)
+  brand                     String?
+  last_updated_by           Int?
+  last_updated_by_name      String?   @db.VarChar(50)
+  last_updated_on           DateTime?
+  first_login               DateTime?
+  latest_login              DateTime?
+  app_version               String?   @db.VarChar(30)
+  device_unique_id          String?   @db.VarChar(150)
+  device_info               String?   @db.VarChar(150)
+  test_user_flag            Boolean?
+  order_type                String?   @db.VarChar(50)
+  third_party_disable       Boolean?
+  third_party_app           String?   @db.VarChar(100)
+  camera_flag               Int?
+  notification_flag         Int?
+  assign_unit               Int?
+  assign_company            Int?
+  company_dispatch_type     String?   @db.VarChar(100)
+  warehouse_id              Int?
+  lat                       String?   @db.VarChar(100)
+  lng                       String?   @db.VarChar(100)
+  gps_address               String?   @db.VarChar(100)
+  download                  Boolean   @default(false)
+  del                       Boolean   @default(false)
+  date_of_birth             DateTime?  
+  date_of_wedding           DateTime?  
+  influencer_approval_level String?   @db.VarChar(100)
+  force_logout              Boolean   @default(false)
+
+  @@index([date_created], name: "date_created_idx")
+  @@index([user_type], name: "user_type_idx")
+  @@index([designation_id], name: "designation_id_idx")
+  @@index([designation_name], name: "designation_name_idx")
+  @@index([branch_code], name: "branch_code_idx")
+  @@index([username], name: "username_idx")
+  @@index([email], name: "email_idx")
+  @@index([contact_01], name: "contact_01_idx")
+  @@index([employee_id], name: "employee_id_idx")
+  @@index([state_name], name: "state_name_idx")
+  @@index([district_name], name: "district_name_idx")
+  @@index([pincode], name: "pincode_idx")
+  @@index([city], name: "city_idx")
+  @@index([status], name: "status_idx")
+  @@index([del], name: "del_idx")
+  @@index([influencer_approval_level], name: "influencer_approval_level_idx") 
+  @@index([force_logout], name: "force_logout_idx")
+  @@index([first_login], name: "first_login_idx")
+}
+// roles(user_type) & designation(role_name)
+model roles {
+  id              Int       @id @default(autoincrement()) //designation_id
+  created_by_id      Int?
+  created_by_name String?   @db.VarChar(100)
+  role_name       String?   @unique @db.VarChar(255) //designation_name 
+  role_type       String?  @db.VarChar(100)
+  user_type       sfa_user_type?
+  created_at      DateTime @default(now())
+  del             Boolean   @default(false)
+  assign_designation_module assign_designation_module[]
+
+  @@index([role_type], name: "role_type_idx")
+  @@index([user_type], name: "user_type_idx")
+  @@index([del], name: "del_idx")
+  @@index([role_name], name: "role_name_idx")
+  @@index([created_by_name], name: "created_by_name_idx")
+  @@index([created_by_id], name: "created_by_id_idx")
+  @@index([created_at], name: "created_at_idx")
+
+}
+
+model module_master {
+  id              Int      @id @default(autoincrement())
+  created_by_id      Int?
+  created_by_name String?   @db.VarChar(100)
+  module_name     String?
+  module_url      String?   @db.VarChar(255)
+  module_icon_keyword String?
+  department_name String?
+  add             Boolean  @default(false)
+  view            Boolean  @default(false)
+  edit            Boolean  @default(false)
+  delete          Boolean  @default(false)
+  import          Boolean  @default(false)
+  export          Boolean  @default(false)
+  approval        Boolean  @default(false)
+  del             Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  assign_designation_module assign_designation_module[]
+
+  @@index([module_name], name: "module_name_idx")
+  @@index([department_name], name: "department_name_idx")
+  @@index([del], name: "del_idx")
+  @@index([created_by_name], name: "created_by_name_idx")
+  @@index([created_by_id], name: "created_by_id_idx")
+  @@index([createdAt], name: "createdAt_idx")
+}
+
+model assign_designation_module {
+  id                 Int       @id @default(autoincrement())
+  date_created       DateTime  @default(now())
+  created_by_id      Int?
+  created_by_name    String?    @db.VarChar(50)
+  designation_id     Int?
+  designation_name   String?    @db.VarChar(100)
+  module_id          Int?
+  module_name        String?    @db.VarChar(200)
+  last_updated_by    Int?
+  last_updated_name  String?   @db.VarChar(50)
+  last_updated       DateTime?
+  del                Boolean   @default(false)
+  module_master       module_master? @relation(fields: [module_id], references: [id])
+  roles               roles? @relation(fields: [designation_id], references: [id])
+
+  @@index([designation_id], name: "designation_id_idx")
+  @@index([designation_name], name: "designation_name_idx")
+  @@index([module_id], name: "module_id_idx")
+  @@index([module_name], name: "module_name_idx")
+  @@index([del], name: "del_idx")
+  @@index([last_updated], name: "last_updated_idx")
+    @@index([date_created], name: "date_created_idx")
+
+}
+
+enum UNIT {
+  KG
+  SQFT
+  PCS
+  LTR
+}
+// product
+model master_product {
+  id                          Int                      @id @default(autoincrement())
+  date_created                DateTime                 @default(now())
+  created_by_id                  Int?
+  created_by_name             String?               @db.VarChar(20)
+  category_id                 Int?
+  category_name               String?                  @db.VarChar(100)
+  sub_category_id             Int?
+  sub_category_name           String?                  @db.VarChar(150)
+  product_code                String?                   @unique @db.VarChar(200)
+  point_category_id           Int?
+  point_category_name         String?                  @db.VarChar(50)
+  product_grouping            String?                  @db.VarChar(50)
+  description                 String?                   @db.Text
+  product_name                String?                   @db.VarChar(200)
+  uom                         UNIT?
+
+  // admin can active/deactive the product
+  status                      Boolean @default(true)
+   last_update_by              Int?
+  last_updated_by_name        String?                  @db.VarChar(100)
+  last_update_date            DateTime?
+  
+  small_packing_size          Int?
+  master_packing_size         Int?
+  small_packing_size_uom      UNIT?
+  master_packing_size_uom     UNIT?
+  qty                         Float?
+  mrp                         Float?
+  net_price                   Float?
+
+// product for scan can be available or not
+  product_scan                String?                  @db.VarChar(50)
+
+  offer_name                  String?                  @db.VarChar(100)
+  offer_group                 String?                  @db.VarChar(100)
+  appOrderFlag                Boolean?
+  brand                       String?                   @db.VarChar(255)
+  color                       String?                  @db.VarChar(100)
+  boxWOItem                   Int?
+  assign_unit                 Int?
+  warranty_period             Int?
+  installation_responsibility String?                  @db.VarChar(100)
+  slug                        String?                  @db.Text
+  insertFrom                  String?                  @db.VarChar(50)
+ 
+  download                    Int?
+  del                         Boolean?                 @default(false)
+  updateByIntegrationDate     DateTime?
+  feature                     Boolean?                  @default(false)
+  hsn_code                    String?                  @db.VarChar(100)
+  stock                       Int?
+  product_size                String?                   @db.VarChar(100)
+  product_thickness           String?                   @db.VarChar(100)
+  sizes                       String?                  @db.Text
+  images                      master_product_images[] // Relation
+
+  @@index([date_created], name: "date_created_idx")
+  @@index([category_id], name: "category_id_idx")
+  @@index([category_name], name: "category_name_idx")
+  @@index([sub_category_id], name: "sub_category_id_idx")
+  @@index([sub_category_name], name: "sub_category_name_idx")
+  @@index([product_code], name: "product_code_idx")
+  @@index([point_category_id], name: "point_category_id_idx")
+  @@index([point_category_name], name: "point_category_name_idx")
+  @@index([product_name], name: "product_name_idx")
+  @@index([status], name: "status_idx") 
+  @@index([last_update_date], name: "last_update_date_idx")
+  @@index([brand], name: "brand_idx")
+  @@index([color], name: "color_idx")
+  @@index([feature], name: "feature_idx")
+  @@index([del], name: "del_idx")
+  @@index([updateByIntegrationDate], name: "updateByIntegrationDate_idx")
+  @@index([hsn_code], name: "hsn_code_idx")
+  @@index([product_size], name: "product_size_idx")
+  @@index([product_thickness], name: "product_thickness_idx")
+  
+}
+
+model master_product_feature {
+  id           Int            @id @default(autoincrement())
+  date_created DateTime       @default(now())
+  created_by_id   Int?
+  created_by_name String?         @db.VarChar(20)
+  product_id   Int
+  feature_name String?         @db.VarChar(255)
+  feature_mrp  Float?
+  del          Boolean        @default(false)
+
+  @@unique([product_id, feature_name])
+  @@index([date_created], name: "date_created_idx")
+  @@index([feature_name], name: "feature_name_idx")
+  @@index([del], name: "del_idx")
+}
+
+model master_product_images {
+  id                   Int            @id @default(autoincrement())
+  date_created         DateTime       @default(now())
+  created_by_id           Int?
+  created_by_name      String?        @db.VarChar(20)
+  product_id           Int
+  image                String?
+  last_updated_by      Int?
+  last_updated_by_name String?        @db.VarChar(20)
+  last_updated_on      DateTime?
+  del                  Boolean        @default(false)
+  product              master_product @relation(fields: [product_id], references: [id])
+  @@index([date_created], name: "date_created_idx")
+  @@index([del], name: "del_idx")
+}
+model master_category {
+  id                     Int       @id @default(autoincrement())
+  date_created           DateTime  @default(now())
+  created_by_id          Int?
+  created_by_name        String?   @db.VarChar(50)
+  category               String?    @db.VarChar(100)
+  image                  String?   @db.Text
+  // admin can active/deactive the category
+  status                 Boolean @default(true)
+  last_update_by         Int?
+  last_update_date       DateTime?
+  last_updated_by_name   String?   @db.VarChar(200)
+
+  gst                    Float?
+  itmsGrpCod             String?   @db.VarChar(100)
+  project_discount       Float?
+  distributor_discount   Float?
+  direct_dealer_discount Float?
+  retailer_discount      Float?
+  
+
+  download               Int?
+  del                    Boolean   @default(false)
+
+@@index([date_created], name: "date_created_idx")
+  @@index([category], name: "category_idx")
+  @@index([status], name: "status_idx")
+  @@index([del], name: "del_idx")
+  @@index([gst], name: "gst_idx")
+  @@index([itmsGrpCod], name: "itmsGrpCod_idx")
+}
+
+model master_sub_category {
+  id                  Int       @id @default(autoincrement())
+  date_created        DateTime  @default(now())
+  created_by_id        Int?
+  created_by_name     String?   @db.VarChar(50)
+  master_category_id  Int?
+  master_category_name String?   @db.VarChar(100)
+  sub_category_name   String?    @db.VarChar(150)
+  category_group      String?   @db.VarChar(100)
+ 
+ 
+  // admin can active/deactive the sub category
+  status              Boolean   @default(true)
+  last_update_by_name String?   @db.VarChar(200)
+  last_update_by      Int?
+  last_update_date    DateTime?
+
+  image               String?   @db.Text
+  del                 Boolean   @default(false)
+
+  @@index([date_created], name: "date_created_idx")
+  @@index([master_category_id], name: "master_category_id_idx")
+  @@index([master_category_name], name: "master_category_name_idx")
+  @@index([sub_category_name], name: "sub_category_name_idx")
+  @@index([category_group], name: "category_group_idx")
+  @@index([status], name: "status_idx")
+  @@index([del], name: "del_idx")
+}
+
+// pdf Catalogue
+model document_catalogue_master {
+  id              Int      @id @default(autoincrement())
+  date_created    DateTime @default(now())
+  created_by_id   Int?
+  created_by_name String?  @db.VarChar(30)
+  title           String?   @unique @db.VarChar(100)
+  doc             String?
+  type            String?   @db.VarChar(100)
+  del             Boolean  @default(false)
+  @@index([date_created], name: "date_created_idx")
+  @@index([title], name: "title_idx")
+  @@index([type], name: "type_idx")
+  @@index([del], name: "del_idx")
+}
+
+
+// point Category Master
+model point_category_master {
+  id                   Int       @id @default(autoincrement())
+  date_created         DateTime  @default(now())
+  created_by_id        Int?
+  created_by_name      String?   @db.VarChar(30)
+  point_category_name  String?    @db.VarChar(30)
+  influencer_point     Float?
+  last_updated_on      DateTime?
+  last_updated_by      Int?
+  last_updated_by_name String?   @db.VarChar(30)
+  download             Int?
+  del                  Boolean   @default(false)
+  @@index([date_created], name: "date_created_idx")
+  @@index([point_category_name], name: "point_category_name_idx")
+  @@index([influencer_point], name: "influencer_point_idx")
+  @@index([del], name: "del_idx")
+}
+
+// Referral point Master
+model point_master {
+  id                        Int       @id @default(autoincrement())
+  date_created              DateTime  @default(now())
+  created_by_id             Int?
+  created_by_name           String?   @db.VarChar(30)
+  welcome_point             Int?  @default(0)
+  birthday_point            Int?  @default(0)
+  anniversary_point         Int?  @default(0)
+  transaction_incentive     Int?  @default(0)
+  registration_refferal     Int?  @default(0)
+  registration_refferal_own Int?  @default(0)
+  site_point                Int?  @default(0)
+  last_updated_on           DateTime?
+  last_updated_by           Int?
+  last_updated_by_name      String?   @db.VarChar(30)
+  del                       Boolean   @default(false)
+  @@index([date_created], name: "date_created_idx")
+  @@index([welcome_point], name: "welcome_point_idx")
+  @@index([birthday_point], name: "birthday_point_idx")
+  @@index([anniversary_point], name: "anniversary_point_idx")
+  @@index([transaction_incentive], name: "transaction_incentive_idx")
+  @@index([registration_refferal], name: "registration_refferal_idx")
+  @@index([registration_refferal_own], name: "registration_refferal_own_idx")
+  @@index([site_point], name: "site_point_idx")
+  @@index([del], name: "del_idx")
+}
+
+model sfa_push_notification {
+  id                       Int       @id @default(autoincrement())
+  date_created            DateTime? @db.DateTime(0)
+  created_by              Int?
+  created_by_name         String?   @db.VarChar(50)
+  subject                 String?   @db.VarChar(100)
+  msg                     String?   @db.Text
+  dealer_count            Int?
+  distributor_count       Int?
+  direct_dealer_count     Int?
+  employee_count          Int?
+  influencer_count        Int?
+  image                   String?   @db.LongText
+  title                   String?   @db.VarChar(100)
+  announcement_type       Boolean?
+  announcement_schedule_type String?   @db.VarChar(30)
+  announcement_time       DateTime? @db.Time(0)
+  announcement_date       DateTime? @db.Date
+  del                     Boolean?  @default(true)
+
+  @@index([date_created], name: "date_created_idx")
+  @@index([created_by], name: "created_by_idx")
+  @@index([created_by_name], name: "created_by_name_idx")
+  @@index([subject], name: "subject_idx")
+  @@index([announcement_type], name: "announcement_type_idx")
+  @@index([announcement_schedule_type], name: "announcement_schedule_type_idx")
+  @@index([announcement_time], name: "announcement_time_idx")
+  @@index([announcement_date], name: "announcement_date_idx")
+  @@index([del], name: "del_idx")
+}
+
+
+model post_and_Earn {
+  id               Int       @id @default(autoincrement())
+  date_created     DateTime? @default(now()) 
+  user_id          Int
+  user_name        String?    @db.VarChar(255)
+  img              String?    @db.VarChar(255)
+  description      String?    @db.VarChar(255)
+  total_points     Int?      @default(0)
+  total_likecount  Int?      @default(0)
+  post_createdon   DateTime? @default(now()) @db.DateTime(0)
+  post_deletedon   DateTime? @db.DateTime(0)
+  total_post_count Int?
+
+  del              Boolean   @default(false)
+  post_and_Earn_instafeedlikes post_and_Earn_instafeedlikes[]
+
+  @@index([user_id], name: "user_id_idx")
+  @@index([user_name], name: "user_name_idx")
+  @@index([post_createdon], name: "post_createdon_idx")
+  @@index([post_deletedon], name: "post_deletedon_idx")
+  @@index([del], name: "del_idx")
+  @@index([total_points], name: "total_points_idx")
+  @@index([total_likecount], name: "total_likecount_idx")
+  @@index([total_post_count], name: "total_post_count_idx")
+}
+
+model post_and_Earn_instafeedlikes {
+  id             Int       @id @default(autoincrement())
+  user_id        Int
+  post_id        Int
+  like_createdon DateTime? @default(now()) @db.DateTime(0)
+
+  @@unique([user_id, post_id], map: "user_id")
+  post_and_Earn  post_and_Earn @relation(fields: [post_id], references: [id])
+
+  @@index([user_id], name: "user_id_idx")
+  @@index([post_id], name: "post_id_idx")
+  @@index([like_createdon], name: "like_createdon_idx")
+}
+
+model user_streaks {
+  id               Int       @id @default(autoincrement())
+  date_created     DateTime  @default(now())
+  user_id          Int       @unique(map: "user_id")
+  streak_count     Int?      @default(0)
+  last_active_date DateTime? @db.Timestamp(0)
+  reward_cycles    Int?      @default(0)
+  reward_claimed   Boolean?  @default(false)
+  del              Boolean   @default(false)
+ 
+ influencer_customer influencer_customer @relation(fields: [user_id], references: [id])
+
+
+  @@index([date_created], name: "date_created_idx")
+  @@index([user_id], name: "user_id_idx")
+  @@index([streak_count], name: "streak_count_idx")
+  @@index([last_active_date], name: "last_active_date_idx")
+  @@index([reward_cycles], name: "reward_cycles_idx")
+  @@index([reward_claimed], name: "reward_claimed_idx")
+  @@index([del], name: "del_idx")
+}
+
+
+model scan_limit {
+  id               Int      @id @default(autoincrement())
+  updated_on       DateTime?
+  updated_by_id    Int?     
+  updated_by_name  String?    @db.VarChar(100)
+  scan_limit       Int?
+  spin_limit       Int?
+  redeem_limit    Int?
+  del              Boolean  @default(false)
+  @@index([updated_on], name: "updated_on_idx")
+  @@index([scan_limit], name: "scan_limit_idx")
+  @@index([spin_limit], name: "spin_limit_idx")
+  @@index([redeem_limit], name: "redeem_limit_idx")
+  @@index([del], name: "del_idx")
+}
+
+model influencer_ledger {
+  id                Int       @id @default(autoincrement())
+  date_created      DateTime? @default(dbgenerated("(now(3))"))
+  influencer_id     Int
+  influencer_name   String?    @db.VarChar(50)
+  influencer_type   String?   @db.VarChar(20)
+  transaction_type_name  String?    @db.VarChar(100)
+  credit            Float?
+  debit             Float?
+  balance           Float?
+  transaction_remark String?  @db.Text
+  download          Int?      @default(0)
+  type              String?   @db.VarChar(100)
+  redeem_id         Int?
+  coupon_code       String?   @db.VarChar(100)
+
+  influencer_customer influencer_customer @relation(fields: [influencer_id], references: [id])
+
+  @@index([date_created], name: "date_created_idx")
+  @@index([influencer_id], name: "influencer_id_idx")
+  @@index([influencer_name], name: "influencer_name_idx")
+  @@index([influencer_type], name: "influencer_type_idx")
+  @@index([transaction_type_name], name: "transaction_type_name_idx")
+  @@index([credit], name: "credit_idx")
+  @@index([debit], name: "debit_idx")
+  @@index([balance], name: "balance_idx")
+  @@index([type], name: "type_idx")
+  @@index([redeem_id], name: "redeem_id_idx")
+  @@index([coupon_code], name: "coupon_code_idx")
+}
+
+model user_badge_activate {
+  id               Int      @id @default(autoincrement())
+  date_created     DateTime @default(now())
+  user_id          Int?
+  badge_id         Int?
+  slab             String?   @db.VarChar(50)
+  type             String?   @db.VarChar(50)
+  value            Int?
+  eligible_point   Int?
+  total_scan_point Int?
+  badge_type       String?   @db.VarChar(50)
+  slab_type        String?   @db.VarChar(50)
+
+  del              Boolean  @default(false)
+  @@index([date_created], name: "date_created_idx")
+  @@index([user_id], name: "user_id_idx")
+  @@index([badge_id], name: "badge_id_idx")
+  @@index([type], name: "type_idx")
+  @@index([value], name: "value_idx")
+  @@index([eligible_point], name: "eligible_point_idx")
+  @@index([total_scan_point], name: "total_scan_point_idx")
+  @@index([badge_type], name: "badge_type_idx")
+}
+
+
+model faq {
+  id          Int      @id @default(autoincrement())
+  date_created DateTime  @default(now())
+  user_type    String?   @db.VarChar(50) @default("ALL")
+  faq_type    String?   @db.VarChar(50) @default("ALL")
+  question    String?
+  answer      String?
+  del         Boolean      @default(false)
+
+  @@index([date_created], name: "date_created_idx")
+  @@index([del], name: "del_idx")
+  @@index([question], name: "question_idx")
+  @@index([answer], name: "answer_idx")
+  @@index([user_type], name: "user_type_idx")
+  @@index([faq_type], name: "faq_type_idx")
+}
+
+model tutorial_video_master {
+  id                    Int                          @id @default(autoincrement())
+  date_created          DateTime                      @default(now())
+  created_by_id            Int?
+  created_by_name       String?
+
+  user_type              String?                      @default("ALL")
+   
+  video_title           String?
+  video_url             String?
+  video_desc            String?
+  platform              String?              @default("ALL")
+
+  sequence              Int?                @default(0)
+
+  del                   Boolean                         @default(false)
+
+  @@index([date_created], name: "date_created_idx")
+  @@index([created_by_name], name: "created_by_name_idx")
+  @@index([platform], name: "platform_idx")
+  @@index([sequence], name: "sequence_idx")
+}
+
+
+model company_contact_master {
+  id                   Int      @id @default(autoincrement())
+  date_created         DateTime @db.DateTime(0) @default(now())
+  created_by           Int
+  created_by_name      String?   @db.VarChar(50)
+
+// about 
+  company_name         String?   @db.VarChar(50)
+  email                String?   @db.VarChar(50)
+  address              String?   @db.VarChar(200)
+  contact_number       String?   @db.VarChar(15)
+  contact_number_2     String?   @db.VarChar(15)
+  about_us            String?   @db.Text
+
+  // componay_logo
+  profile_img         String?  
+
+  // URLS
+  website_url            String?   @db.Text
+  iframe_url_map           String?   @db.Text
+  facebook_url         String?   @db.VarChar(255)
+  twitter_url          String?   @db.VarChar(255)
+  instagram_url        String?   @db.VarChar(255)
+  linkedin_url         String?   @db.VarChar(255)
+
+
+  last_updated_on      DateTime? @db.DateTime(0)
+  last_updated_by      Int?
+  last_updated_by_name String?   @db.VarChar(50)
+ 
+  del                  Boolean  @default(false)
+
+  @@index([date_created], name: "date_created_idx")
+  @@index([created_by], name: "created_by_idx")
+  @@index([company_name], name: "company_name_idx")
+  @@index([contact_number], name: "contact_number_idx")
+  @@index([email], name: "email_idx") 
+  @@index([last_updated_on], name: "last_updated_on_idx")
+  @@index([last_updated_by], name: "last_updated_by_idx")
+  @@index([del], name: "del_idx")
+  
+
+}
+
+
+model distribution_network {
+  id                Int      @id @default(autoincrement())
+  date_created      DateTime @db.DateTime(0)
+  created_by        Int?
+  created_by_name   String?   @db.VarChar(40)
+  module_name       String?   @db.VarChar(300)
+  distribution_type  String?   @db.VarChar(30)
+  
+  del               Boolean  @db.Bit(1)
+
+  @@index([date_created], name: "date_created_idx")
+  @@index([created_by], name: "created_by_idx")
+  @@index([created_by_name], name: "created_by_name_idx")
+  @@index([module_name], name: "module_name_idx")
+  @@index([distribution_type], name: "distribution_type_idx")
+  @@index([del], name: "del_idx")
+}
+
+model banner_master {
+  id                Int      @id @default(autoincrement())
+  date_created      DateTime @db.DateTime(0)
+  created_by_id        Int?
+  created_by_name   String?   @db.VarChar(40)
+  banner_name       String?   @db.VarChar(300)
+  user_type       String?   @default("ALL")
+  banner_image      String? 
+  del               Boolean @default(false)
+
+  @@index([date_created], name: "date_created_idx")
+  @@index([created_by_id], name: "created_by_id_idx")
+
+}
+
+model audit_log {
+  id            Int       @id @default(autoincrement())
+  table_name    String
+  record_id     Int?      
+  operation     String    
+  old_data      Json?
+  new_data      Json?
+  changed_by_id Int?
+  changed_by_name String?
+  timestamp     DateTime  @default(now())
+  ip_address    String?
+  remark          String?
+
+  @@index([table_name], name: "table_name_idx")
+  @@index([record_id], name: "record_id_idx")
+  @@index([operation], name: "operation_idx")
+  @@index([changed_by_id], name: "changed_by_id_idx")
+  @@index([changed_by_name], name: "changed_by_name_idx")
+  @@index([timestamp], name: "timestamp_idx")
+  @@index([ip_address], name: "ip_address_idx")
+  @@index([remark], name: "remark_idx")
+}
+
+enum TicketStatus{
+  PENDING
+  CLOSED
+}
+
+enum QueryType{
+  REDEEM
+  COUPON
+  PRODUCT 
+  REFUND
+}
+model tickets {
+  id            Int       @id @default(autoincrement())
+  date_created  DateTime  @default(now())
+  created_by_id   Int?
+  created_by_name String?
+  ticket_query_type  QueryType? 
+  image       String?
+  remark      String?
+  ticket_status      TicketStatus  @default(PENDING)
+  del    Boolean @default(false)
+}
+
+model dealer_list {
+  id            Int   @id @default(autoincrement())
+  date_created  DateTime  @default(now())
+  created_by_id   Int?
+  created_by_name String?
+  dealer_code    String @unique
+  dealer_name    String?
+  dealer_mobile  String?
+  del            Boolean  @default(false)
+}
